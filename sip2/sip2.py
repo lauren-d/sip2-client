@@ -569,7 +569,6 @@ class Sip2:
         @param  string request     The request text to send to the backend system
         @return string|false       Raw string response returned from the backend system (response)
         """
-        print('[ENTRY] get_response')
         # Set user defined socket timeout
         try:
             self._socket.settimeout(self.socketTimeout)
@@ -580,7 +579,6 @@ class Sip2:
         self.log.info("--- SENDING REQUEST --- \n%s" % request)
         try:
             #Send complete string at once
-            print('self._socket.getsockname()', self._socket.getsockname())
             self._socket.sendall(bytes(request, self.hostEncoding))
             self.log.info("--- REQUEST SENT, WAITING FOR RESPONSE ---")
         except socket.error as e:
@@ -598,7 +596,6 @@ class Sip2:
         #$result = stream_get_line((stream_socket_client($this->socket_protocol.'://'.$this->hostname.':'.$this->port, $this->socket_error_id, $this->socket_error_msg, $this->socketTimeout, STREAM_CLIENT_CONNECT|STREAM_CLIENT_PERSISTENT, $context)), 100000, "\x0D");
 
         response = self._socket.recv(1024).decode(encoding = self.hostEncoding)
-        print('reponse', response)
         self.log.info("--- RESPONSE RECEIVED  --- \n%s" % response)
 
         # test request for CRC validity
@@ -1100,15 +1097,12 @@ class Sip2:
         this message is used, it will be the first message sent to the SC.
             94<ok>
         """
-        print('[ENTRY] sip_login_response')
         result = {'fixed': {
                             'Ok':              response[2:3]
                             },
                   'variable': self._response_parse_varData(response, 3)
                 }
-        print(result)
         self.last_response_parsed = result
-        print('[EXIT] sip_login_response')
         return result
 
 
@@ -1455,7 +1449,6 @@ class Sip2:
         Response Message may be sent first to complete login of the SC).
             98<on-line status><checkin ok><checkout ok><ACS renewal policy><status update ok><off-line ok><timeout period><retries allowed><date / time sync><protocol version><institution id><library name><supported messages ><terminal location><screen message><print line>
         """
-        print('[ENTRY] sip_sc_status_response')
         result = {'fixed': {
                             'OnlineStatus':    response[2:3],
                             'CheckinOk':       response[3:4], # is Checkin by the SC allowed?
@@ -1470,9 +1463,7 @@ class Sip2:
                             },
                   'variable': self._response_parse_varData(response, 36)
                 }
-        print(result)
         self.last_response_parsed = result
-        print('[EXIT] sip_sc_status_response')
         return result;
 
 

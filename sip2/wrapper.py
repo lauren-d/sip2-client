@@ -175,7 +175,6 @@ class Sip2Wrapper:
         """ 
         # login device
         self.sip_login(loginUserId, loginPassword)
-        print('toto')
         # Perform self check
         if (autoSelfCheck == True):
             # check status
@@ -334,7 +333,6 @@ class Sip2Wrapper:
             return info['variable']['AF'][0]
 
         return {}
-
    
     def return_last_request(self):
         """ getter for Sip2 class last_request """ 
@@ -359,7 +357,6 @@ class Sip2Wrapper:
         @return sip2
         """
         return self._sip2
-
 
     def _command_available(self, sm_id):
         """ Check if a) sc supports command and b) patron is allowed to use command
@@ -415,7 +412,6 @@ class Sip2Wrapper:
                 return False
         else:
             return True
-        
     
     def sip_patron_block(self, blockedCardMsg, cardRetained = 'N'):
         """ Generate Block Patron (code 01) request messages in sip2 format
@@ -431,8 +427,7 @@ class Sip2Wrapper:
 
         msg  = self._sip2.sip_block_patron_request(blockedCardMsg, cardRetained)
         info = self._sip2.sip_patron_status_response(self._sip2.get_response(msg))
-        return info    
-    
+        return info
 
     def sip_item_checkin(self, itemIdentifier, returnDate = None, currentLocation = '', itemProperties = '', noBlock = 'N', cancel = ''):
         """ Checking item (code 09/10)
@@ -448,7 +443,6 @@ class Sip2Wrapper:
         msg  = self._sip2.sip_checkin_request(itemIdentifier, returnDate, currentLocation, itemProperties, noBlock, cancel)
         info = self._sip2.sip_checkin_response(self._sip2.get_response(msg))
         return info
-    
 
     def sip_item_checkout(self, itemIdentifier, itemProperties ='', feeAcknowledged='N', noBlock='N', nbDueDate = '', scRenewalPolicy = 'N', cancel='N'):
         """ Checkout item (code 11/12). Changed order of parameters slightly
@@ -466,7 +460,6 @@ class Sip2Wrapper:
         info = self._sip2.sip_checkout_response(self._sip2.get_response(msg))
         return info
 
-
     def sip_patron_session_end(self):
         """ Method to send a patron session to the server (code 35/36)
         @throws Exception if patron session is not properly ended
@@ -483,7 +476,6 @@ class Sip2Wrapper:
         self._patronInfo        = None
         return self
 
-
     def sip_fee_paid(self, feeType, paymentType, feeAmount, feeIdentifier = '', transactionId = '', currencyType = 'EUR'):
         """ Pay fees (code 37/38)
         @param  int    feeType         value for the fee type portion of the fixed length field
@@ -498,7 +490,6 @@ class Sip2Wrapper:
         msg  = self._sip2.sip_fee_paid_request(feeType, paymentType, feeAmount, feeIdentifier, transactionId, currencyType)
         info = self._sip2.sip_fee_paid_response(self._sip2.get_response(msg))
         return info
-
 
     def sip_item_hold(self, holdMode, expirationDate = '', holdType = '', itemIdentifier = '', titleIdentifier = '', feeAcknowledged='N', pickupLocation = ''):
         """ Create, modify, or delete a hold (code 15/16)
@@ -516,7 +507,6 @@ class Sip2Wrapper:
         info = self._sip2.sip_hold_response(self._sip2.get_response(msg))
         return info
 
-
     def sip_item_information(self, itemIdentifier):
         """ Method to get Item Information (17/18)
         @param  string itemIdentifier    value for the variable length required AB field
@@ -526,7 +516,6 @@ class Sip2Wrapper:
         msg  = self._sip2.sip_item_information_request(itemIdentifier)
         info = self._sip2.sip_item_information_response(self._sip2.get_response(msg))
         return info
-
 
     def sip_item_status_update(self,  itemIdentifier, itemProperties = ''):
         """ Item Status Update (code 19/20)
@@ -540,7 +529,6 @@ class Sip2Wrapper:
         info = self._sip2.sip_item_status_update_response(self._sip2.get_response(msg))
         return info
 
-
     def sip_login(self, loginUserId, loginPassword):
         """ Authenticate with admin credentials to the backend server (code 93/94)
         @param string loginUserId    The admin user
@@ -548,18 +536,13 @@ class Sip2Wrapper:
         @throws Exception if login failed
         @return Sip2Wrapper - returns $this if login successful
         """
-        print('[ENTRY] sip_login')
         msg  = self._sip2.sip_login_request(loginUserId, loginPassword)
-        print('titi')
         info = self._sip2.sip_login_response(self._sip2.get_response(msg))
-        print('tata')
         if (info['fixed']['Ok'] != '1'):
             raise RuntimeError('Login failed')
 
-        print('[EXIT] sip_login')
         return info
-    
-    
+
     def sip_patron_enable(self):
         """ Generate Patron Enable (code 25/26) request messages in sip2 format
         Note: Even the protocol definition suggests, that this is pretty useless...
@@ -570,7 +553,6 @@ class Sip2Wrapper:
         msg  = self._sip2.sip_patron_enable_request()
         info = self._sip2.sip_patron_enable_response(self._sip2.get_response(msg))
         return info
-
 
     def sip_patron_information(self, infoType = 'none'):
         """ Worker function to call out to sip2 server and grab patron information (code 64/65)
@@ -596,7 +578,6 @@ class Sip2Wrapper:
         self._patronInfo[infoType] = info
         return info
 
-
     def sip_patron_status(self):
         """ Method to grab the patron status from the server and store it in _patronStatus 
         (code 63/64). Automatic fallback to Sip1 (code 23/24) 
@@ -618,7 +599,6 @@ class Sip2Wrapper:
             self._patronStatus = info
             return info
 
-
     def sip_item_renew(self, itemIdentifier = '', titleIdentifier = '', itemProperties = '', feeAcknowledged= 'N', noBlock = 'N', nbDuDate = '', thirdPartyAllowed = 'N'):
         """ Renew single item (code 29/30). Changed order of parameters slightly
         Generate Renew (code 29) request messages in sip2 format
@@ -632,10 +612,9 @@ class Sip2Wrapper:
         @return array              SIP2 checkin response
         """
         if (self._command_available(14) == False): return False
-        msg  = self._sip2.sip_renew_request(itemIdentifier, titleIdentifier, nbDuDate, itemProperties, feeAcknowledged, noBlock, thirdPartyAllowed)
+        msg = self._sip2.sip_renew_request(itemIdentifier, titleIdentifier, nbDuDate, itemProperties, feeAcknowledged, noBlock, thirdPartyAllowed)
         info = self._sip2.sip_renew_all_response(self._sip2.get_response(msg))
         return info
-
 
     def sip_item_renew_all(self, feeAcknowledged = 'N'):
         """ Renew all loaned items (code 65/66)
@@ -644,10 +623,9 @@ class Sip2Wrapper:
         @return array                      SIP2 checkin response
         """
         if (self._command_available(15) == False): return False
-        msg  = self._sip2.sip_renew_all_request(feeAcknowledged)
+        msg = self._sip2.sip_renew_all_request(feeAcknowledged)
         info = self._sip2.sip_renew_all_response(self._sip2.get_response(msg))
         return info
-
 
     def sip_sc_status(self, statusCode = 0, maxPrintWidth = '080', protocolVersion = 2):
         """ Checks the SC Status to ensure that the SC is online
@@ -655,12 +633,7 @@ class Sip2Wrapper:
         @return Sip2Wrapper returns $this if successful
         """
         # execute self test
-
-        print('[ENTRY] sip_sc_status')
-        msg  = self._sip2.sip_sc_status_request(statusCode, maxPrintWidth, protocolVersion)
-        print(msg)
+        msg = self._sip2.sip_sc_status_request(statusCode, maxPrintWidth, protocolVersion)
         info = self._sip2.sip_sc_status_response(self._sip2.get_response(msg))
         self._scStatus = info
-        print('[EXIT] sip_sc_status')
         return info
-        
