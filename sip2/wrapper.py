@@ -235,6 +235,7 @@ class Sip2Wrapper:
         @return boolean returns true if valid, false otherwise
         """
         self.get_patron_status()
+        #print(self._patronStatus)
         if (self._patronStatus['variable']['BL'][0] != 'Y' or (self._sip2.patronpwd != '' and self._patronStatus['variable']['CQ'][0] != 'Y')):
             return False
 
@@ -373,7 +374,6 @@ class Sip2Wrapper:
         @return boolean    True or False (always True if self._scStatus is not set)
         """
         if (self._scStatus == None): return True
-        
         supported_messages = (
         'Patron Status Request',
         'Checkout',            'Checkin',                  'Block Patron',
@@ -393,11 +393,15 @@ class Sip2Wrapper:
         'excessive outstanding fees',   'recall overdue',
         'too many items billed'                         
         )
-        
+        #print('\n_command_available():', self._scStatus['variable'])
+        #print('sm_id:', sm_id)
+        #print ('isinstance(self._patronStatus, dict):', isinstance(self._patronStatus, dict))
         if self._scStatus['variable']['BX'][0][sm_id:sm_id + 1] != 'Y':
+            #print('not supported')
             self._sip2.log.warning("Wrapper: Server does not support command %s (no message sent)" % supported_messages[sm_id])
             return False
         elif isinstance(self._patronStatus, dict) == True:
+            #print('patron status:', self._patronStatus)
             if sm_id == 1 and self._patronStatus['fixed']['PatronStatus'][0:0 + 1] != 'Y':   
                 # patron may not charge items
                 self._sip2.log.warning("Wrapper: Patron restriction: %s (no message sent)" % patron_status[0])
@@ -410,8 +414,9 @@ class Sip2Wrapper:
                 # patron may not renew items
                 self._sip2.log.warning("Wrapper: Patron restriction: %s (no message sent)" % patron_status[1])
                 return False
-        else:
-            return True
+
+        #print('==> command available\n')
+        return True
     
     def sip_patron_block(self, blockedCardMsg, cardRetained = 'N'):
         """ Generate Block Patron (code 01) request messages in sip2 format
@@ -563,8 +568,9 @@ class Sip2Wrapper:
         @throws Exception if startPatronSession has not been called with success prior to calling this
         @return array              The parsed response from the server
         """
-        if (self._command_available(7) == False): return False
-        
+        if (self._command_available(7) == False):
+            print('command not available')
+            return False
         if (self._inPatronSession == False):
             raise RuntimeError('Must start patron session before calling fetchPatronInfo')
         
@@ -572,6 +578,7 @@ class Sip2Wrapper:
             return self._patronInfo[infoType]
 
         msg  = self._sip2.sip_patron_information_request(infoType)
+        #print('message:', msg)
         info = self._sip2.sip_patron_information_response(self._sip2.get_response(msg))
         if (self._patronInfo == None):
             self._patronInfo = {}
@@ -635,5 +642,7 @@ class Sip2Wrapper:
         # execute self test
         msg = self._sip2.sip_sc_status_request(statusCode, maxPrintWidth, protocolVersion)
         info = self._sip2.sip_sc_status_response(self._sip2.get_response(msg))
+        # print('info:', info)
         self._scStatus = info
+        # print('scStatus:', self._scStatus)
         return info
