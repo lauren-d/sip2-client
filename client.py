@@ -10,7 +10,7 @@ sip2Params = {
     'tlsEnable': False,
     'tlsAcceptSelfsigned': True,
     'hostEncoding': 'utf-8',
-    'language': '000',
+    'language': '002',
     'institutionId': 'UCLouvain',
     'scLocation': 'selfcheck_location',
 }
@@ -28,42 +28,70 @@ def selfcheck_client(user, password):
 
             while True:
                 try:
-                    # 1. login device (93)
-                    # 2. get ACS status (98)
-                    # 3. patron status (23)
-                    # 4. patron information (63)
 
                     time.sleep(5)
 
+                    # 1. login device (93)
                     print('[{thread}] : login to server...'.format(
                         thread=cur_thread.name
                     ))
                     wrapper.login_device(user, password, True)
 
+                    # 2. get ACS status (98)
                     print('[{thread}] : status...'.format(
                         thread=cur_thread.name
                     ))
                     wrapper.sip_sc_status()
 
+                    # 3. patron login (23)
                     print('[{thread}] : login patron...'.format(
                         thread=cur_thread.name
                     ))
-                    #Simonetta
-                    wrapper.login_patron('2050124311', '123456')
 
-                    # Giulia
-                    # wrapper.login_patron('2050124312', '123456')
+                    # test wiht Simonetta
+                    #wrapper.login_patron('2233230', '123456')
+                    # test wiht Simonetta
+                    wrapper.login_patron('2050124311', '123456')
+                    # test with Giulia
+                    #wrapper.login_patron('2050124312', '123456')
+
+                    # 4. enable patron (25)
                     print('[{thread}] : enable patron...'.format(
                          thread=cur_thread.name
                     ))
                     wrapper.sip_patron_enable()
 
+                    # 5. patron information (63)
                     print('[{thread}] : patron information...'.format(
                         thread=cur_thread.name
                     ))
+                    patron_info = wrapper.sip_patron_information()
 
-                    wrapper.sip_patron_information()
-
+                    # 6. item information (17)
+                    print('[{thread}] : item information...'.format(
+                        thread=cur_thread.name
+                    ))
+                    print('patron_info:', patron_info)
+                    items = patron_info.get('variable').get('AS', [])
+                    print('items:', items)
+                    for item_id in items:
+                        item = wrapper.sip_item_information(item_id)
+                        print('[{thread}] : hold item information...'.format(
+                            thread=cur_thread.name
+                        ))
+                    items = patron_info.get('variable').get('AT', [])
+                    for item_id in items:
+                        item = wrapper.sip_item_information(item_id)
+                        print('[{thread}] : overdue item information...'.format(
+                            thread=cur_thread.name
+                        ))
+                    items = patron_info.get('variable').get('AU', [])
+                    for item_id in items:
+                        item = wrapper.sip_item_information(item_id)
+                        print('[{thread}] : charged item information...'.format(
+                            thread=cur_thread.name
+                        ))
+                    # 7. end patron session (35)
                     print('[{thread}] : patron session end...'.format(
                         thread=cur_thread.name
                     ))
