@@ -235,7 +235,6 @@ class Sip2Wrapper:
         @return boolean returns true if valid, false otherwise
         """
         self.get_patron_status()
-        #print(self._patronStatus)
         if (self._patronStatus['variable']['BL'][0] != 'Y' or (self._sip2.patronpwd != '' and self._patronStatus['variable']['CQ'][0] != 'Y')):
             return False
 
@@ -393,29 +392,22 @@ class Sip2Wrapper:
         'excessive outstanding fees',   'recall overdue',
         'too many items billed'                         
         )
-        #print('\n_command_available():', self._scStatus['variable'])
-        #print('sm_id:', sm_id)
-        #print ('isinstance(self._patronStatus, dict):', isinstance(self._patronStatus, dict))
         if self._scStatus['variable']['BX'][0][sm_id:sm_id + 1] != 'Y':
-            #print('not supported')
             self._sip2.log.warning("Wrapper: Server does not support command %s (no message sent)" % supported_messages[sm_id])
             return False
         elif isinstance(self._patronStatus, dict) == True:
-            #print('patron status:', self._patronStatus)
-            if sm_id == 1 and self._patronStatus['fixed']['PatronStatus'][0:0 + 1] != 'Y':   
+            if sm_id == 1 and self._patronStatus['fixed']['PatronStatus'][0:0 + 1] == 'Y':
                 # patron may not charge items
                 self._sip2.log.warning("Wrapper: Patron restriction: %s (no message sent)" % patron_status[0])
                 return False
-            elif sm_id == 13 and self._patronStatus['fixed']['PatronStatus'][3:3 + 1] != 'Y':
+            elif sm_id == 13 and self._patronStatus['fixed']['PatronStatus'][3:3 + 1] == 'Y':
                 # patron may not hold items   
                 self._sip2.log.warning("Wrapper: Patron restriction: %s (no message sent)" % patron_status[3])
                 return False
-            elif sm_id in (14,15) and self._patronStatus['fixed']['PatronStatus'][1:1 + 1] != 'Y':
+            elif sm_id in (14, 15) and self._patronStatus['fixed']['PatronStatus'][1:1 + 1] == 'Y':
                 # patron may not renew items
                 self._sip2.log.warning("Wrapper: Patron restriction: %s (no message sent)" % patron_status[1])
                 return False
-
-        #print('==> command available\n')
         return True
     
     def sip_patron_block(self, blockedCardMsg, cardRetained = 'N'):
@@ -569,7 +561,6 @@ class Sip2Wrapper:
         @return array              The parsed response from the server
         """
         if (self._command_available(7) == False):
-            print('command not available')
             return False
         if (self._inPatronSession == False):
             raise RuntimeError('Must start patron session before calling fetchPatronInfo')
@@ -578,14 +569,13 @@ class Sip2Wrapper:
             return self._patronInfo[infoType]
 
         msg  = self._sip2.sip_patron_information_request(infoType)
-        #print('message:', msg)
         info = self._sip2.sip_patron_information_response(self._sip2.get_response(msg))
         if (self._patronInfo == None):
             self._patronInfo = {}
         self._patronInfo[infoType] = info
         return info
 
-    def sip_patron_status(self):
+    def sip_patron_status(self, sip2=True):
         """ Method to grab the patron status from the server and store it in _patronStatus 
         (code 63/64). Automatic fallback to Sip1 (code 23/24) 
         @todo 2017-05-18: Any good reason to add an option to force 23/24 and 
@@ -595,16 +585,13 @@ class Sip2Wrapper:
         if (self._command_available(0) == False): return False
         
         # Prefer Sip2 above Sip1 and use the improved variant 63/64 if supported
-        info = self.sip_patron_information()
-        if info != False:
-            self._patronStatus = info
-            return info
+        if sip2:
+            info = self._patronStatus = self.sip_patron_information()
         # Otherwise use Sip1 variant
         else: 
-            msg  = self._sip2.sip_patron_status_request()
-            info = self._sip2.sip_patron_status_response(self._sip2.get_response(msg))
-            self._patronStatus = info
-            return info
+            msg = self._sip2.sip_patron_status_request()
+            info = self._patronStatus = self._sip2.sip_patron_status_response(self._sip2.get_response(msg))
+        return info
 
     def sip_item_renew(self, itemIdentifier = '', titleIdentifier = '', itemProperties = '', feeAcknowledged= 'N', noBlock = 'N', nbDuDate = '', thirdPartyAllowed = 'N'):
         """ Renew single item (code 29/30). Changed order of parameters slightly
@@ -642,7 +629,5 @@ class Sip2Wrapper:
         # execute self test
         msg = self._sip2.sip_sc_status_request(statusCode, maxPrintWidth, protocolVersion)
         info = self._sip2.sip_sc_status_response(self._sip2.get_response(msg))
-        # print('info:', info)
         self._scStatus = info
-        # print('scStatus:', self._scStatus)
         return info
