@@ -9,7 +9,7 @@ https://github.com/tzeumer/SIP2-Client-for-Python
 
 * Introduce multi-client support by implementing threads
 
-run : python client.py -u reroilstest@gmail.com -p 123456
+run : `python client.py -u <username> -p <password>`
 
 ## More about SIP2
 
